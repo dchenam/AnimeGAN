@@ -1,0 +1,7 @@
+{
+  "exp_name": "sagan_baseline",
+  "image_dir": "~/Dataset/CelebA/CelebA_nocrop",
+  "metafile_path": "~/Dataset/CelebA/list_attr_celeba.txt",
+  "num_epochs": 10,
+  "batch_size": 32
+}
