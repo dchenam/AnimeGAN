@@ -14,20 +14,26 @@ class Generator(nn.Module):
             nn.ReLU()
         )
         """Generator using the DC-GAN Architecture"""
-        layers.append(nn.ConvTranspose2d(config.z_dim + config.encoding_dim, channel, 4, 1, 0))
-        layers.append(nn.BatchNorm2d(channel))
+        layers.append(
+            nn.ConvTranspose2d(config.z_dim + config.encoding_dim, channel, kernel_size=4, stride=1, padding=0,
+                               bias=False))
+        layers.append(nn.BatchNorm2d(channel, momentum=0.9))
         layers.append(nn.ReLU())
 
         for i in range(config.g_layers):
-            layers.append(nn.ConvTranspose2d(channel, channel // 2, kernel_size=4, stride=2, padding=1))
-            layers.append(nn.BatchNorm2d(channel // 2))
-            layers.append(nn.ReLU(inplace=True))
+            layers.append(nn.ConvTranspose2d(channel, channel // 2, kernel_size=4, stride=2, padding=1, bias=False))
+            layers.append(nn.BatchNorm2d(channel // 2, momentum=0.9))
+            layers.append(nn.ReLU())
             channel = channel // 2
 
-        layers.append(nn.ConvTranspose2d(config.g_dim, 3, kernel_size=4, stride=2, padding=1))
+        layers.append(nn.ConvTranspose2d(config.g_dim, 3, kernel_size=4, stride=2, padding=1, bias=False))
         layers.append(nn.Tanh())
 
         self.upsampler = nn.Sequential(*layers)
+
+        # for m in self.modules():
+        #     if isinstance(m, nn.ConvTranspose2d):
+        #         m.weight.data.normal_(0.0, 0.02)
 
     def forward(self, noise, label):
         label = self.encoder(label)
@@ -48,23 +54,26 @@ class Discriminator(nn.Module):
             nn.ReLU()
         )
 
-        layers.append(nn.Conv2d(3, channel, 4, 2, 1))
-        layers.append(nn.BatchNorm2d(channel))
+        layers.append(nn.Conv2d(3, channel, kernel_size=4, stride=2, padding=1, bias=False))
+        layers.append(nn.BatchNorm2d(channel, momentum=0.9))
         layers.append(nn.ReLU())
 
         for i in range(config.d_layers):
-            layers.append(nn.Conv2d(channel, channel * 2, kernel_size=4, stride=2, padding=1))
-            layers.append(nn.BatchNorm2d(channel * 2))
+            layers.append(nn.Conv2d(channel, channel * 2, kernel_size=4, stride=2, padding=1, bias=False))
+            layers.append(nn.BatchNorm2d(channel * 2, momentum=0.9))
             layers.append(nn.ReLU())
             channel = channel * 2
         self.downsampler = nn.Sequential(*layers)
 
         self.output = nn.Sequential(
-            nn.Conv2d(channel + self.config.encoding_dim, channel, 1, 1),
+            nn.Conv2d(channel + self.config.encoding_dim, channel, 1, 1, bias=False),
             nn.ReLU(),
             nn.Conv2d(channel, 1, 4, 1),
             nn.Sigmoid()
         )
+        # for m in self.modules():
+        #     if isinstance(m, nn.Conv2d):
+        #         m.weight.data.normal_(0.0, 0.02)
 
     def forward(self, image, label):
         label = self.encoder(label)

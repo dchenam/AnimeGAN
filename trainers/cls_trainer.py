@@ -6,7 +6,6 @@ import os
 import torch
 import torch.nn as nn
 
-
 class CLSTrainer(BaseTrain):
     def __init__(self, G, D, config, data, embedding, logger, device):
         super(CLSTrainer, self).__init__(G, D, config, data, logger, device)
@@ -23,11 +22,11 @@ class CLSTrainer(BaseTrain):
     def train(self):
         for train_iter in trange(self.config.num_iters):
             self.train_step(train_iter)
-            if train_iter % 100 == 0:
+            if train_iter % self.config.sample_iters == 0:
                 image = self.sample().data.cpu()
                 sample_path = os.path.join(self.config.sample_dir, '{}-sample.jpg'.format(train_iter))
-                save_image(self.denorm(image), sample_path, nrow=1, padding=0)
-            if train_iter % 1000 == 0:
+                save_image(self.denorm(image), sample_path, nrow=2, padding=2)
+            if train_iter % self.config.save_iters == 0:
                 self.save_models(train_iter)
 
     def train_step(self, step):
@@ -46,7 +45,7 @@ class CLSTrainer(BaseTrain):
         real_label = torch.ones(self.config.batch_size, 1).to(self.device)
         fake_label = torch.zeros(self.config.batch_size, 1).to(self.device)
 
-        m = torch.distributions.Uniform(-1, 1)
+        m = torch.distributions.Normal(0, 1)
         z = m.sample((self.config.batch_size, self.config.z_dim)).to(self.device)
 
         """Train Discriminator"""
@@ -76,10 +75,12 @@ class CLSTrainer(BaseTrain):
         self.logger.scalar_summary("g_loss", self.g_loss, step)
 
     def sample(self):
+        sample_strs = ['blue_hair, red_eyes', 'brown_hair, brown_eyes', 'black_hair, blue_eyes', 'red_hair, green_eyes']
+        sample_embeddings = [self.embedding[str] for str in sample_strs]
         with torch.no_grad():
-            m = torch.distributions.Uniform(-1, 1)
-            z = m.sample((1, self.config.z_dim)).to(self.device)
-            sample_text = torch.Tensor(self.embedding['blue_hair, red_eyes']).unsqueeze(0).to(self.device)
+            m = torch.distributions.Normal(0, 0.3)
+            z = m.sample((len(sample_strs), self.config.z_dim)).to(self.device)
+            sample_text = torch.Tensor(sample_embeddings).to(self.device)
             out = torch.squeeze(self.G(z, sample_text))
         return out
 

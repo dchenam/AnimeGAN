@@ -47,7 +47,7 @@ class Anime_Dataset(Dataset):
             self.image_ids += [image_id]
 
     def generate_embedding(self):
-        test_str = ['blue_hair, red_eyes', 'black_hair, blue_eyes', 'red_hair, green_eyes']
+        test_str = ['blue_hair, red_eyes', 'brown_hair, brown_eyes', 'black_hair, blue_eyes', 'red_hair, green_eyes']
         embeddings = {}
         for str in test_str:
             split = str.split(', ')
@@ -64,6 +64,8 @@ def get_loader(config):
         transforms.Scale(config.image_size),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
+        transforms.Normalize(mean=(0.5, 0.5, 0.5),  # 3 for RGB channels
+                             std=(0.5, 0.5, 0.5))
     ])
 
     dataset = Anime_Dataset(config, transform)

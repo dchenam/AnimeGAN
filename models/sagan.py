@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.functional as F
+from spectral_norm import spectral_norm
 
 NORMS = {'batch': nn.BatchNorm2d, 'instance': nn.InstanceNorm2d}
 ARCHITECTURE = ['DCGAN', 'RESNET']
@@ -28,7 +29,7 @@ class Generator(nn.Module):
         layers.append(nn.ConvTranspose2d(self.z_dim, channel, self.kernel_size, 2))
         layers.append(nn.BatchNorm2d(channel))
         layers.append(nn.ReLU(inplace=True))
-        
+
         # UpSampling
         for i in config.num_layers:
             layers.append(nn.ConvTranspose2d(channel, channel / 2, self.kernel_size, 2))

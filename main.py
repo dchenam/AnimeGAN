@@ -43,6 +43,10 @@ def main():
 
     # create trainer
     trainer = CLSTrainer(G, D, config, data_loader, embedding, logger, device)
+
+    # log experiment description
+    logging.info(config.description)
+
     # enter training or testing
     if args.mode == 'train':
         if args.resume:
