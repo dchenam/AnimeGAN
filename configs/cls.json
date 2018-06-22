@@ -1,6 +1,6 @@
 {
-  "exp_name": "cls_baseline_5",
-  "description": "forgot to normalize real images",
+  "exp_name": "cls_spectral",
+  "description": "added spectral norm in generator and discriminator",
   "image_dir": "/home/dchenam/Dataset/anime/faces",
   "label_path": "/home/dchenam/Dataset/anime/tags_clean.txt",
   "num_iters": 40000,

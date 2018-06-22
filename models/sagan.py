@@ -3,9 +3,6 @@ import torch.nn as nn
 import torch.functional as F
 from spectral_norm import spectral_norm
 
-NORMS = {'batch': nn.BatchNorm2d, 'instance': nn.InstanceNorm2d}
-ARCHITECTURE = ['DCGAN', 'RESNET']
-
 
 class SelfAttention(nn.Module):
     def __init__(self):
@@ -54,3 +51,31 @@ class Discriminator(nn.Module):
 
     def forward(self, *input):
         pass
+
+class ResidualBlockA(nn.Module):
+    """Residual Block with Instance Normalization"""
+    def __init__(self, dim_in, dim_out):
+        super(ResidualBlockA, self).__init__()
+        self.main = nn.Sequential(
+            nn.Conv2d(dim_in, dim_out, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.InstanceNorm2d(dim_out),
+            nn.Conv2d(dim_out, dim_out, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.InstanceNorm2d(dim_out)
+        )
+
+    def forward(self, x):
+        return x + self.main(x)
+
+class ResidualBlockB(nn.Module):
+    """Residual Block with Spectral Norm + Instance Normalization"""
+    def __init__(self, dim_in, dim_out):
+        super(ResidualBlockB, self).__init__()
+        self.main = nn.Sequential(
+            spectral_norm(nn.Conv2d(dim_in, dim_out, kernel_size=3, stride=1, padding=1, bias=False)),
+            nn.InstanceNorm2d(dim_out),
+            spectral_norm(nn.Conv2d(dim_out, dim_out, kernel_size=3, stride=1, padding=1, bias=False)),
+            nn.InstanceNorm2d(dim_out)
+        )
+
+    def forward(self, x):
+        return x + self.main(x)
